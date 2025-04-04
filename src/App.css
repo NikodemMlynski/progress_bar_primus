@@ -1,16 +1,35 @@
+@font-face {
+  font-family: 'schreiberowa';
+  src: url('fonts/texgyreadventor-bold.otf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+  letter-spacing: normal;
+}
+* {
+  font-family: 'schreiberowa', sans-serif;
+  padding: 0;
+  font-weight: bold;
+  margin: 0;
+  box-sizing: border-box;
+}
 .timer_container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 400px;
-  background-color: #00ff00;
+  background-color: white;
+}
+
+.border {
+  padding: 3px;
+  border: 4px solid black;
 }
 
 .progress_container {
   position: relative;
   width: 600px;
-  height: 80px;
+  height: 50px;
   border: 3px solid black;
   overflow: hidden;
   display: flex;
@@ -30,11 +49,15 @@
 
 .progress_text {
   position: absolute;
-  font-size: 35px;
+  font-size: 25px;
   font-weight: bold;
+  mix-blend-mode: difference; /* Automatyczna zmiana koloru */
   color: white;
   z-index: 2;
+  width: 100%;
+  text-align: center;
 }
+
 
 .form_container {
   display: flex;
@@ -70,7 +93,7 @@
   font-size: 16px;
 }
 
-.time_form button {
+.time_form button, .time_info button {
   background-color: black;
   color: white;
   font-size: 18px;
@@ -80,6 +103,16 @@
   transition: opacity 0.2s ease-out;
 }
 
-.time_form button:hover {
+.time_form button:hover, .time_info button:hover {
   opacity: 0.7;
+}
+
+.time_info {
+  display: flex;
+  flex-direction: column;
+  border: 2px solid black;
+  padding: 1rem;
+}
+.time_info p{
+  font-size: 20px;
 }

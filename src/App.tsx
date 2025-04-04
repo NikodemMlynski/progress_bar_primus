@@ -1,9 +1,18 @@
 import { useState, useEffect } from "react";
 import './App.css';
+const formatTime = (seconds: number) => {
+    const h = String(Math.floor(seconds / 3600)).padStart(2, "0");
+    const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, "0");
+    const s = String(seconds % 60).padStart(2, "0");
+    return `${h}:${m}:${s}`;
+};
 const CountdownTimer = () => {
     const [startDate, setStartDate] = useState<Date | null>(null);
     const [endDate, setEndDate] = useState<Date | null>(null);
-    const [timeLeft, setTimeLeft] = useState(0);
+    const [timeLeft, setTimeLeft] = useState(
+        -1
+    );
+    const [isTimeFinished, setIsTimeFinished] = useState(false);
 
     // Pobieranie zapisanych dat z localStorage19
     useEffect(() => {
@@ -26,6 +35,9 @@ const CountdownTimer = () => {
             {
               const remainingTime = Math.max(0, Math.floor((endDate.getTime() - now) / 1000));
               setTimeLeft(remainingTime);
+              if(0 > Math.floor((endDate.getTime() - now) / 1000)) {
+                setIsTimeFinished(true);
+              }
             }
         };
 
@@ -52,41 +64,66 @@ const CountdownTimer = () => {
     };
 
     // Formatowanie czasu HH:MM:SS
-    const formatTime = (seconds: number) => {
-        const h = String(Math.floor(seconds / 3600)).padStart(2, "0");
-        const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, "0");
-        const s = String(seconds % 60).padStart(2, "0");
-        return `${h}:${m}:${s}`;
-    };
 
-    const progressPercentage = startDate && endDate
+    const progressPercentage = timeLeft != -1 && startDate && endDate
         ? ((1 - timeLeft / ((endDate.getTime() - startDate.getTime()) / 1000)) * 100).toFixed(2)
         : 0;
+    
+    const handleResetTime = () => {
+        localStorage.removeItem("startDate");
+        localStorage.removeItem("endDate");
+        setStartDate(null);
+        setEndDate(null);
+        setIsTimeFinished(false);
+        setTimeLeft(-1);
+    }
 
+    let timerContent = "Przed transmisją";
+    console.log(timeLeft);
+    if(isTimeFinished) timerContent = "Koniec primusa";
+    if(!isTimeFinished && timeLeft != -1) timerContent = formatTime(timeLeft);
     return (
         <div>
             <div className="timer_container">
+                <div className="border">
                 <div className="progress_container">
                     <div className="progress_fill" style={{ width: `${progressPercentage}%` }}></div>
-                    <div className="progress_text">{formatTime(timeLeft)}</div>
+                    <div className="progress_text">{timerContent}</div>
+                </div>
+
                 </div>
             </div>
+
             <div className="form_container">
-                <StartEndForm onSubmit={handleStartTimeSubmit} title="Set Start Time" />
-                <StartEndForm onSubmit={handleEndTimeSubmit} title="Set End Time" />
+                <StartEndForm onSubmit={handleStartTimeSubmit} onIsFinishedChange={setIsTimeFinished} title="Set Start Time" />
+                <StartEndForm onSubmit={handleEndTimeSubmit} onIsFinishedChange={setIsTimeFinished} title="Set End Time" />
+            <TimeInfo 
+                startDate={startDate}
+                endDate={endDate}
+                isTimeFinished={isTimeFinished} 
+                handleResetTime={handleResetTime}
+                />
             </div>
+            
         </div>
     );
 };
 
-const StartEndForm = ({ onSubmit, title }: { onSubmit: (hours: number, minutes: number) => void, title: string }) => {
+
+const StartEndForm = ({ onSubmit, title, onIsFinishedChange }: {
+     onSubmit: (hours: number, minutes: number) => void,
+      title: string,
+      onIsFinishedChange: (isTimeFinished: boolean) => void,
+    }) => {
     const [hours, setHours] = useState(0);
     const [minutes, setMinutes] = useState(0);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        onIsFinishedChange(false);
         onSubmit(hours, minutes);
     };
+
 
     return (
         <form onSubmit={handleSubmit} className="time_form">
@@ -97,5 +134,23 @@ const StartEndForm = ({ onSubmit, title }: { onSubmit: (hours: number, minutes: 
         </form>
     );
 };
+
+const TimeInfo = ({
+    handleResetTime, startDate, endDate, isTimeFinished 
+}: {
+    handleResetTime: () => void,
+    startDate: Date | null,
+    endDate: Date | null,
+    isTimeFinished: boolean
+}) => {
+    return (
+        <div className="time_info">
+                <p>Start Date: {startDate && formatTime(+(new Date(startDate)))}</p>
+                <p>End Date: {endDate && formatTime(+(new Date(endDate)))}</p>
+                <p>Status: {isTimeFinished ? "finished" : "not finished"}</p>
+                <button onClick={handleResetTime}>Reset time</button>
+            </div>
+    )
+}
 
 export default CountdownTimer;
